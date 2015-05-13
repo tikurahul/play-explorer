@@ -1,7 +1,0 @@
-# Routes File that showcases most of the types of routes
-
-# Dynamic
-GET     /clients/:id        controllers.Api.clientById(id: String)
-
-# Static
-GET    /assets/clientInfo   controllers.Api.clientInfo()

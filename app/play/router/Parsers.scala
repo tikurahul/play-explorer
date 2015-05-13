@@ -3,7 +3,7 @@ package play.router
 import java.io.File
 
 import org.apache.commons.io.FileUtils
-import play.router.RoutesCompiler.{RoutesCompilationError, RouteFileParser, Rule}
+import play.router.RoutesCompiler.{RouteFileParser, RoutesCompilationError, Rule}
 
 /** Having to use the package play.router because RouteFileParser is package protected. :( */
 object Parsers {
