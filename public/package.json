@@ -1,0 +1,25 @@
+{
+  "name": "play-explorer-frontend",
+  "version": "1.0.0",
+  "description": "This is the frontend for the Play Explorer",
+  "main": "javascripts/index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "Play",
+    "Framework",
+    "API",
+    "Explorer"
+  ],
+  "dependencies": {
+    "react": "^0.13.3"
+  },
+  "private": true,
+  "author": "Rahul Ravikumar",
+  "license": "MIT",
+  "devDependencies": {
+    "grunt": "^0.4.5",
+    "grunt-browserify": "^3.8.0"
+  }
+}
