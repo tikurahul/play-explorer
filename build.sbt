@@ -9,6 +9,7 @@ resolvers ++= Seq(
 )
 
 libraryDependencies ++= Seq(
-  "com.typesafe.play" %% "play" % "2.3.6",
+  "com.typesafe.play" %% "play" % "2.3.9",
+  "com.typesafe.play" %% "routes-compiler" % "2.3.9",
   "commons-io" % "commons-io" % "2.4"
 )
