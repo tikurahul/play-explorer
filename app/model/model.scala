@@ -65,5 +65,6 @@ trait Endpoint {
 /** Represents a Play Web Application. */
 trait Application {
   def baseUrl: String
+
   def endpoints: Seq[Endpoint]
 }
