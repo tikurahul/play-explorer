@@ -36,15 +36,13 @@ case class BasicParameter(
 
 /** HTTP methods. */
 
-trait HttpMethod
-
-object GET extends HttpMethod
-
-object POST extends HttpMethod
-
-object PUT extends HttpMethod
-
-object DELETE extends HttpMethod
+object HttpMethod extends Enumeration {
+  val Get = Value("GET")
+  val Post = Value("POST")
+  val Put = Value("PUT")
+  val Delete = Value("DELETE")
+  val Options = Value("OPTIONS")
+}
 
 /** Path fragments */
 
@@ -52,15 +50,28 @@ trait PathFragment
 
 case class StaticPathFragment(value: String) extends PathFragment
 
-case class DynamicPathFragment(identifier: String) extends PathFragment
+case class DynamicPathFragment(identifier: String, regex: String) extends PathFragment
 
 trait Endpoint {
-  def method: HttpMethod
+  def packageName: String
+
+  def controller: String
+
+  def method: HttpMethod.Value
 
   def fragments: Seq[PathFragment]
 
   def parameters: Seq[Parameter]
+
+  def name = s"$packageName.$controller"
 }
+
+case class BasicEndpoint(
+  override val packageName: String,
+  override val controller: String,
+  override val method: HttpMethod.Value = HttpMethod.Get,
+  override val fragments: Seq[PathFragment] = Seq.empty[PathFragment],
+  override val parameters: Seq[Parameter] = Seq.empty[Parameter]) extends Endpoint
 
 /** Represents a Play Web Application. */
 trait Application {
@@ -68,3 +79,5 @@ trait Application {
 
   def endpoints: Seq[Endpoint]
 }
+
+case class BasicApplication(override val baseUrl: String, override val endpoints: Seq[Endpoint]) extends Application

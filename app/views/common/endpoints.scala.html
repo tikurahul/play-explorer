@@ -1,0 +1,16 @@
+@(endpoints: Seq[model.Endpoint])
+
+@import views.helpers.Helpers
+
+<table class="table table-hover table-condensed">
+  <tbody>
+    @for(endpoint <- endpoints) {
+      <tr>
+        <td class="@Helpers.className(endpoint)">@endpoint.method</td>
+        <td>
+          <a href="#">@endpoint.name</a>
+        </td>
+      </tr>
+    }
+  </tbody>
+</table>
