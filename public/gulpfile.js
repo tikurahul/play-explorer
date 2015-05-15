@@ -1,32 +1,44 @@
-// from https://lincolnloop.com/blog/untangle-your-javascript-browserify/
+'use strict';
 
+var watchify = require('watchify');
+var browserify = require('browserify');
 var gulp = require('gulp');
-var browserify = require('gulp-browserify');
+var source = require('vinyl-source-stream');
+var buffer = require('vinyl-buffer');
 var gutil = require('gulp-util');
-var rename = require('gulp-rename');
+var sourcemaps = require('gulp-sourcemaps');
+var assign = require('lodash.assign');
 
-gulp.task('default', function() {
-  var production = gutil.env.type === 'production';
+// add custom browserify options here
+var customOpts = {
+  entries: [
+    './javascripts/index.js'
+  ],
 
-  gulp.src(['javascripts/index.js'], {
-    read: false
-  })
+  debug: true
+};
+var opts = assign({}, watchify.args, customOpts);
+var b = watchify(browserify(opts));
 
-  // Browserify, and add source maps if this isn't a production build
-  .pipe(browserify({
-    debug: !production,
-    transform: ['reactify'],
-    extensions: ['.jsx']
-  }))
+// add transformations here
+// i.e. b.transform(coffeeify);
 
-  .on('prebundle', function(bundler) {
-    // Make React available externally for dev tools
-    bundler.require('react');
-  })
+gulp.task('js', bundle); // so you can run `gulp js` to build the file
+b.on('update', bundle); // on any dep update, runs the bundler
+b.on('log', gutil.log); // output build logs to terminal
 
-  // Rename the destination file
-  .pipe(rename('bundle.js'))
-
-  // Output to the build directory
-  .pipe(gulp.dest('javascripts/built/'));
-});
+function bundle() {
+  return b.bundle()
+    // log errors if they happen
+    .on('error', gutil.log.bind(gutil, 'Browserify Error'))
+    .pipe(source('bundle.js'))
+    // optional, remove if you don't need to buffer file contents
+    .pipe(buffer())
+    // optional, remove if you dont want sourcemaps
+    .pipe(sourcemaps.init({
+      loadMaps: true
+    })) // loads map from browserify file
+    // Add transformation tasks to the pipeline here.
+    .pipe(sourcemaps.write('./')) // writes .map file
+    .pipe(gulp.dest('javascripts/built'));
+}
