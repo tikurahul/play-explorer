@@ -15,6 +15,6 @@ object Helpers {
 
   def id(endpoint: Endpoint): String = {
     val seperator = "."
-    s"${endpoint.method}$seperator${endpoint.packageName}$seperator${endpoint.controller}"
+    s"${endpoint.method}$seperator${endpoint.packageName}$seperator${endpoint.controller}$seperator${endpoint.methodName}"
   }
 }

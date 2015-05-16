@@ -61,6 +61,7 @@ object JsonHelpers {
       Json.obj(
         "packageName" -> endpoint.packageName,
         "controller" -> endpoint.controller,
+        "methodName" -> endpoint.methodName,
         "method" -> endpoint.method.toString,
         "fragments" -> Json.toJson(endpoint.fragments)(fragmentsWriter),
         "parameters" -> Json.toJson(endpoint.parameters)(parametersWriter)

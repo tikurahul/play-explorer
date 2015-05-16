@@ -19,11 +19,11 @@ object MainController extends Controller {
     val static = StaticPathFragment("test")
     val dynamic = DynamicPathFragment("id", ".*")
 
-    val get = BasicEndpoint(packageName, "methodA", HttpMethod.Get, Seq(static, dynamic))
-    val post = BasicEndpoint(packageName, "methodB", HttpMethod.Post)
-    val put = BasicEndpoint(packageName, "methodC", HttpMethod.Put)
-    val delete = BasicEndpoint(packageName, "methodD", HttpMethod.Delete)
-    val options = BasicEndpoint(packageName, "methodE", HttpMethod.Options)
+    val get = BasicEndpoint(packageName, "MainController", "methodA", HttpMethod.Get, Seq(static, dynamic))
+    val post = BasicEndpoint(packageName, "MainController", "methodB", HttpMethod.Post)
+    val put = BasicEndpoint(packageName, "MainController", "methodC", HttpMethod.Put)
+    val delete = BasicEndpoint(packageName, "MainController", "methodD", HttpMethod.Delete)
+    val options = BasicEndpoint(packageName, "MainController", "methodE", HttpMethod.Options)
 
     val endpoints = Seq(get, post, put, delete, options)
     BasicApplication(baseUrl, endpoints)

@@ -66,18 +66,21 @@ trait Endpoint {
 
   def controller: String
 
+  def methodName: String
+
   def method: HttpMethod.Value
 
   def fragments: Seq[PathFragment]
 
   def parameters: Seq[Parameter]
 
-  def name = s"$packageName.$controller"
+  def name = s"$packageName.$controller.$methodName"
 }
 
 case class BasicEndpoint(
   override val packageName: String,
   override val controller: String,
+  override val methodName: String,
   override val method: HttpMethod.Value = HttpMethod.Get,
   override val fragments: Seq[PathFragment] = Seq.empty[PathFragment],
   override val parameters: Seq[Parameter] = Seq.empty[Parameter]) extends Endpoint

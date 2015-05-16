@@ -8,9 +8,10 @@ Utils.endpointId = function(endpoint) {
 
   var packageName = endpoint.packageName;
   var controller = endpoint.controller;
+  var methodName = endpoint.methodName;
   var method = endpoint.method;
 
-  return [method, packageName, controller].join('.');
+  return [method, packageName, controller, methodName].join('.');
 }
 
 module.exports = Utils;
