@@ -1,3 +1,4 @@
+var React = require('react');
 var Utils = require('./modules/utils');
 var Pubsub = require('./modules/pubsub');
 var Fragments = require('./components/fragments').Fragments;
@@ -9,8 +10,17 @@ var endpoint = null;
 var endpointId = null;
 var i = 0;
 
-var endpointHandler = function(payload) {
-  console.log('Handing endpoint selection', payload);
+var endpointHandler = function(eventId) {
+  var endpointInfo = cache[eventId] || null;
+  if (endpointInfo && Application.baseUrl) {
+    // render fragments
+    var FragmentsFactory = React.createFactory(Fragments);
+    var fragments = FragmentsFactory({
+      baseUrl: Application.baseUrl,
+      fragments: endpointInfo.fragments
+    });
+    React.render(fragments, document.querySelector('#fragments'));
+  }
 };
 
 for (i = 0; i < endpoints.length; i += 1) {
