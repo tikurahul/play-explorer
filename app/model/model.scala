@@ -2,16 +2,25 @@ package model
 
 /** input[type] types. */
 
-trait InputType
+trait InputType {
+  def `type`: String
+}
 
-object Text extends InputType
+object Text extends InputType {
+  override def `type`: String = "text"
+}
 
-object Number extends InputType
+object Number extends InputType {
+  override def `type`: String = "number"
+}
 
-case class Range(min: Number, max: Number) extends InputType
+case class Range(min: Number, max: Number) extends InputType {
+  override def `type`: String = "range"
+}
 
-object File extends InputType
-
+object File extends InputType {
+  override def `type`: String = "file"
+}
 
 /** Request parameters. */
 

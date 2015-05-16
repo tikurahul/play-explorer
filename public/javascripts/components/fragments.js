@@ -3,6 +3,11 @@ var PureRenderMixin = require('react/addons').addons.PureRenderMixin;
 
 var Fragment = React.createClass({
   mixins: [PureRenderMixin],
+  propTypes: {
+    name: React.PropTypes.string.isRequired,
+    regex: React.PropTypes.string.isRequired,
+    value: React.PropTypes.string
+  },
   getInitialState: function(){
     return {
       name: null,
@@ -25,8 +30,19 @@ var Fragment = React.createClass({
 });
 
 var Fragments = React.createClass({
+  mixins: [PureRenderMixin],
   getInitialState: function() {
-
+    return {
+      baseUrl: null,
+      fragments: []
+    }
+  },
+  render: function() {
+    return (
+      <div>
+        <span className='baseUrl'></span>
+      </div>
+    );
   }
 });
 
