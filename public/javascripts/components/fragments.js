@@ -26,7 +26,7 @@ var DynamicFragment = React.createClass({
     var value = this.state.value;
     var name = this.state.name;
     return (
-      <input type='text' value={value} onChange={this.handleChange} placeholder={name} />
+      <input className="form-control" type='text' value={value} onChange={this.handleChange} placeholder={name} />
     );
   }
 });

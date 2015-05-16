@@ -24,4 +24,6 @@ npm install
 
 ```
 
-Now you should be all set to write JavaScript and build it.
+Now you should be all set to write JavaScript and build it. All you need to do is to `cd <yourWorkSpace>/public` and `gulp js`. This sets up a gulp watcher that incrementally rebuilds your JavaScript code.
+
+

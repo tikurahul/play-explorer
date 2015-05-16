@@ -7,7 +7,7 @@ object Helpers {
   def className(endpoint: Endpoint): String = {
     endpoint.method match {
       case HttpMethod.Get => "success"
-      case HttpMethod.Post | HttpMethod.Put | HttpMethod.Delete  => "danger"
+      case HttpMethod.Post | HttpMethod.Put | HttpMethod.Delete => "danger"
       case HttpMethod.Options => "info"
       case _ => ""
     }
@@ -15,6 +15,8 @@ object Helpers {
 
   def id(endpoint: Endpoint): String = {
     val seperator = "."
-    s"${endpoint.method}$seperator${endpoint.packageName}$seperator${endpoint.controller}$seperator${endpoint.methodName}"
+    // method refers to the HTTP method
+    // methodName refers to the method name on the controller
+    Seq(endpoint.method, endpoint.packageName, endpoint.controller, endpoint.methodName).mkString(seperator)
   }
 }
