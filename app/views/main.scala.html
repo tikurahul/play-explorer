@@ -1,6 +1,15 @@
 @(application: model.Application)
 
+@import play.api.libs.json._
+@import model.JsonHelpers._
+
 @base("API Explorer") {
+
+  <script type="text/javascript">
+    @** wrapping the JSON payload inside a @Html fragment, as we need unescaped content. *@
+    var Application = @Html(Json.toJson(application)(applicationWriter).toString());
+  </script>
+
   <script type="text/javascript" src="@routes.Assets.at("javascripts/built/bundle.js")"></script>
   <div class="row">
     <div class="col-md-2">

@@ -1,6 +1,6 @@
 package views.helpers
 
-import model.{HttpMethod, Endpoint}
+import model.{Endpoint, HttpMethod}
 
 object Helpers {
 
