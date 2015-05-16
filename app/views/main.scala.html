@@ -1,6 +1,7 @@
 @(application: model.Application)
 
 @base("API Explorer") {
+  <script type="text/javascript" src="@routes.Assets.at("javascripts/built/bundle.js")"></script>
   <div class="row">
     <div class="col-md-2">
       @views.html.common.endpoints(application.endpoints)

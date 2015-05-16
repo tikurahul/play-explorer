@@ -29,17 +29,19 @@ object JsonHelpers {
 
   implicit val fragmentWriter = new Writes[PathFragment] {
     override def writes(fragment: PathFragment): JsValue = {
-      case StaticPathFragment(value) =>
-        Json.obj(
-          "type" -> "static",
-          "value" -> value
-        )
-      case DynamicPathFragment(identifier, regex) =>
-        Json.obj(
-          "type" -> "dynamic",
-          "identifier" -> identifier,
-          "regex" -> regex
-        )
+      fragment match {
+        case StaticPathFragment(value) =>
+          Json.obj(
+            "type" -> "static",
+            "value" -> value
+          )
+        case DynamicPathFragment(identifier, regex) =>
+          Json.obj(
+            "type" -> "dynamic",
+            "identifier" -> identifier,
+            "regex" -> regex
+          )
+      }
     }
   }
 
@@ -48,7 +50,7 @@ object JsonHelpers {
       val jsFragments = for {
         fragment <- fragments.toSeq
       } yield {
-        Json.toJson(fragment)(fragmentsWriter)
+        Json.toJson(fragment)(fragmentWriter)
       }
       JsArray(jsFragments)
     }
@@ -71,7 +73,7 @@ object JsonHelpers {
       val jsEndpoints = for {
         endpoint <- endpoints.toSeq
       } yield {
-        Json.toJson(endpoint)(endpointsWriter)
+        Json.toJson(endpoint)(endpointWriter)
       }
       JsArray(jsEndpoints)
     }
