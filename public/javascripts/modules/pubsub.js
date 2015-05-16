@@ -20,9 +20,6 @@ Pubsub.once = function(event, listener) {
 
 Pubsub.publish = function(event) {
   var args = Array.prototype.slice.call(arguments);
-  // first argument is the eventName
-  args.shift();
-
   emitter.emit.apply(emitter, args);
 }
 

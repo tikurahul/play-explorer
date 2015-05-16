@@ -15,11 +15,11 @@ object MainController extends Controller {
 
   /** Test setup for the explorer. */
   def testApplication(): Application = {
-    val get = BasicEndpoint(packageName, "Method A")
-    val post = BasicEndpoint(packageName, "Method B", HttpMethod.Post)
-    val put = BasicEndpoint(packageName, "Method C", HttpMethod.Put)
-    val delete = BasicEndpoint(packageName, "Method D", HttpMethod.Delete)
-    val options = BasicEndpoint(packageName, "Method E", HttpMethod.Options)
+    val get = BasicEndpoint(packageName, "methodA")
+    val post = BasicEndpoint(packageName, "methodB", HttpMethod.Post)
+    val put = BasicEndpoint(packageName, "methodC", HttpMethod.Put)
+    val delete = BasicEndpoint(packageName, "methodD", HttpMethod.Delete)
+    val options = BasicEndpoint(packageName, "methodE", HttpMethod.Options)
 
     val endpoints = Seq(get, post, put, delete, options)
     BasicApplication(baseUrl, endpoints)
