@@ -26,4 +26,8 @@ npm install
 
 Now you should be all set to write JavaScript and build it. All you need to do is to `cd <yourWorkSpace>/public` and `gulp js`. This sets up a gulp watcher that incrementally rebuilds your JavaScript code.
 
+### What the interface looks like
 
+Here is what the interface looks like currently.
+
+![Explorer Preview](https://raw.githubusercontent.com/tikurahul/play-explorer/master/public/images/interface.png)
