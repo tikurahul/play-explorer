@@ -1,6 +1,7 @@
 var React = require('react');
 var PureRenderMixin = require('react/addons').addons.PureRenderMixin;
 var PropsMixin = require('./mixins');
+var Pubsub = require('../modules/pubsub');
 
 var BasicParameter = React.createClass({
   mixins: [PropsMixin],
@@ -11,6 +12,16 @@ var BasicParameter = React.createClass({
     return {
       parameterInfo: null
     };
+  },
+  componentWillMount: function() {
+    var self = this;
+    Pubsub.subscribe('endpoint-change', () => {
+      var parameterInfo = self.state.parameterInfo;
+      parameterInfo.value = null;
+      self.setState({
+        parameterInfo: parameterInfo
+      });
+    });
   },
   render: function() {
     var name = this.state.parameterInfo.name;

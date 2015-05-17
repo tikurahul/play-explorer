@@ -17,6 +17,14 @@ var DynamicFragment = React.createClass({
       value: null
     }
   },
+  componentWillMount: function() {
+    var self = this;
+    Pubsub.subscribe('endpoint-change', () => {
+      self.setState({
+        value: null
+      });
+    });
+  },
   handleChange: function(event) {
     var name = this.state.name;
     var newValue = event.target.value;
@@ -91,8 +99,7 @@ var UrlTracker = React.createClass({
   getInitialState: function() {
     return {
       baseUrl: null,
-      fragments: [],
-      url: null
+      fragments: []
     };
   },
   componentWillMount: function() {
@@ -108,23 +115,21 @@ var UrlTracker = React.createClass({
       self.setState({
         fragments: fragments
       }, () => {
-        self.updateTracker();
+        self.getUrl();
       });
     });
+    Pubsub.subscribe('endpoint-change', () => {
+      self.getUrl();
+    });
   },
-  updateTracker: function() {
+  getUrl: function() {
     var fragments = this.state.fragments;
     var urlParts = [this.state.baseUrl];
     fragments.forEach((fragment) => {
       urlParts.push(fragment.value);
     });
     var url = urlParts.join('/');
-    this.setState({
-      url: url
-    });
-  },
-  componentDidMount: function() {
-    this.updateTracker();
+    console.log('URL => ', url);
   },
   render: function() {
     var url = this.state.url;
@@ -134,7 +139,6 @@ var UrlTracker = React.createClass({
 
     return (
       <div className="urlTracker" style={style}>
-        {url}
       </div>
     );
   }
@@ -147,6 +151,17 @@ var Fragments = React.createClass({
       baseUrl: null,
       fragments: []
     }
+  },
+  componentWillMount: function() {
+    var self = this;
+    Pubsub.subscribe('endpoint-change', () => {
+      var fragments = self.state.fragments;
+      fragments.forEach((fragment) => {
+        if (fragment.type === 'dynamic') {
+          fragment.value = null;
+        }
+      });
+    });
   },
   render: function() {
     var baseUrl = this.state.baseUrl;

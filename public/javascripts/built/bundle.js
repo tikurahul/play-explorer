@@ -37,6 +37,7 @@ var endpointHandler = function(eventId) {
       parameters: endpointInfo.parameters
     });
     React.render(parameters, document.querySelector('#parameters'));
+    Pubsub.publish('endpoint-change');
   }
 };
 
@@ -81,6 +82,14 @@ var DynamicFragment = React.createClass({displayName: "DynamicFragment",
       regex: null,
       value: null
     }
+  },
+  componentWillMount: function() {
+    var self = this;
+    Pubsub.subscribe('endpoint-change', function()  {
+      self.setState({
+        value: null
+      });
+    });
   },
   handleChange: function(event) {
     var name = this.state.name;
@@ -156,8 +165,7 @@ var UrlTracker = React.createClass({displayName: "UrlTracker",
   getInitialState: function() {
     return {
       baseUrl: null,
-      fragments: [],
-      url: null
+      fragments: []
     };
   },
   componentWillMount: function() {
@@ -173,23 +181,21 @@ var UrlTracker = React.createClass({displayName: "UrlTracker",
       self.setState({
         fragments: fragments
       }, function()  {
-        self.updateTracker();
+        self.getUrl();
       });
     });
+    Pubsub.subscribe('endpoint-change', function()  {
+      self.getUrl();
+    });
   },
-  updateTracker: function() {
+  getUrl: function() {
     var fragments = this.state.fragments;
     var urlParts = [this.state.baseUrl];
     fragments.forEach(function(fragment)  {
       urlParts.push(fragment.value);
     });
     var url = urlParts.join('/');
-    this.setState({
-      url: url
-    });
-  },
-  componentDidMount: function() {
-    this.updateTracker();
+    console.log('URL => ', url);
   },
   render: function() {
     var url = this.state.url;
@@ -198,8 +204,7 @@ var UrlTracker = React.createClass({displayName: "UrlTracker",
     };
 
     return (
-      React.createElement("div", {className: "urlTracker", style: style}, 
-        url
+      React.createElement("div", {className: "urlTracker", style: style}
       )
     );
   }
@@ -212,6 +217,17 @@ var Fragments = React.createClass({displayName: "Fragments",
       baseUrl: null,
       fragments: []
     }
+  },
+  componentWillMount: function() {
+    var self = this;
+    Pubsub.subscribe('endpoint-change', function()  {
+      var fragments = self.state.fragments;
+      fragments.forEach(function(fragment)  {
+        if (fragment.type === 'dynamic') {
+          fragment.value = null;
+        }
+      });
+    });
   },
   render: function() {
     var baseUrl = this.state.baseUrl;
@@ -274,6 +290,7 @@ module.exports = PropsMixin;
 var React = require('react');
 var PureRenderMixin = require('react/addons').addons.PureRenderMixin;
 var PropsMixin = require('./mixins');
+var Pubsub = require('../modules/pubsub');
 
 var BasicParameter = React.createClass({displayName: "BasicParameter",
   mixins: [PropsMixin],
@@ -284,6 +301,16 @@ var BasicParameter = React.createClass({displayName: "BasicParameter",
     return {
       parameterInfo: null
     };
+  },
+  componentWillMount: function() {
+    var self = this;
+    Pubsub.subscribe('endpoint-change', function()  {
+      var parameterInfo = self.state.parameterInfo;
+      parameterInfo.value = null;
+      self.setState({
+        parameterInfo: parameterInfo
+      });
+    });
   },
   render: function() {
     var name = this.state.parameterInfo.name;
@@ -363,7 +390,7 @@ exports.BasicParameter = BasicParameter;
 exports.Parameters = Parameters;
 
 
-},{"./mixins":3,"react":181,"react/addons":9}],5:[function(require,module,exports){
+},{"../modules/pubsub":5,"./mixins":3,"react":181,"react/addons":9}],5:[function(require,module,exports){
 var EventEmitter = require('events').EventEmitter;
 
 var emitter = new EventEmitter();

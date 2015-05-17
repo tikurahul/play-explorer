@@ -36,6 +36,7 @@ var endpointHandler = function(eventId) {
       parameters: endpointInfo.parameters
     });
     React.render(parameters, document.querySelector('#parameters'));
+    Pubsub.publish('endpoint-change');
   }
 };
 
