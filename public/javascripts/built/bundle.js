@@ -20,21 +20,22 @@ var ParametersFactory = React.createFactory(Parameters);
 var endpointHandler = function(eventId) {
   var endpointInfo = cache[eventId] || null;
   if (endpointInfo && Application.baseUrl) {
+    var clonedEndpointInfo = JSON.parse(JSON.stringify(endpointInfo));
     // render url tracker
     var urlTracker = UrlTrackerFactory({
       baseUrl: Application.baseUrl,
-      fragments: endpointInfo.fragments
+      fragments: clonedEndpointInfo.fragments
     });
     React.render(urlTracker, document.querySelector('#urlTracker'));
     // render fragments
     var fragments = FragmentsFactory({
       baseUrl: Application.baseUrl,
-      fragments: endpointInfo.fragments
+      fragments: clonedEndpointInfo.fragments
     });
     React.render(fragments, document.querySelector('#fragments'));
     // render parameters
     var parameters = ParametersFactory({
-      parameters: endpointInfo.parameters
+      parameters: clonedEndpointInfo.parameters
     });
     React.render(parameters, document.querySelector('#parameters'));
     Pubsub.publish('endpoint-change');
@@ -90,6 +91,9 @@ var DynamicFragment = React.createClass({displayName: "DynamicFragment",
         value: null
       });
     });
+  },
+  componentWillUnmount: function() {
+    Pubsub.unsubscribeAll('endpoint-change');
   },
   handleChange: function(event) {
     var name = this.state.name;
@@ -181,24 +185,25 @@ var UrlTracker = React.createClass({displayName: "UrlTracker",
       self.setState({
         fragments: fragments
       }, function()  {
-        self.getUrl();
+        self.updateTrackedUrl();
       });
     });
     Pubsub.subscribe('endpoint-change', function()  {
-      self.getUrl();
+      self.updateTrackedUrl();
     });
   },
   componentWillUnmount: function() {
-    Pubsub.unsubscribeAll('endpoint-change');
+    Pubsub.unsubscribeAll('dynamic-fragment-update', 'endpoint-change');
   },
-  getUrl: function() {
+  updateTrackedUrl: function() {
     var fragments = this.state.fragments;
     var urlParts = [this.state.baseUrl];
     fragments.forEach(function(fragment)  {
       urlParts.push(fragment.value);
     });
     var url = urlParts.join('/');
-    console.log('URL => ', url);
+    console.log('Updated URL => ', url);
+    Pubsub.publish('request-url-update', url);
   },
   render: function() {
     var url = this.state.url;
@@ -307,19 +312,6 @@ var BasicParameter = React.createClass({displayName: "BasicParameter",
     return {
       parameterInfo: null
     };
-  },
-  componentWillMount: function() {
-    var self = this;
-    Pubsub.subscribe('endpoint-change', function()  {
-      var parameterInfo = self.state.parameterInfo;
-      parameterInfo.value = null;
-      self.setState({
-        parameterInfo: parameterInfo
-      });
-    });
-  },
-  componentWillUnmount: function() {
-    Pubsub.unsubscribeAll('endpoint-change');
   },
   render: function() {
     var name = this.state.parameterInfo.name;

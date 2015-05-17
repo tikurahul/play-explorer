@@ -13,19 +13,6 @@ var BasicParameter = React.createClass({
       parameterInfo: null
     };
   },
-  componentWillMount: function() {
-    var self = this;
-    Pubsub.subscribe('endpoint-change', () => {
-      var parameterInfo = self.state.parameterInfo;
-      parameterInfo.value = null;
-      self.setState({
-        parameterInfo: parameterInfo
-      });
-    });
-  },
-  componentWillUnmount: function() {
-    Pubsub.unsubscribeAll('endpoint-change');
-  },
   render: function() {
     var name = this.state.parameterInfo.name;
     var value = this.state.parameterInfo.value;

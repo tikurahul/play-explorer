@@ -25,6 +25,9 @@ var DynamicFragment = React.createClass({
       });
     });
   },
+  componentWillUnmount: function() {
+    Pubsub.unsubscribeAll('endpoint-change');
+  },
   handleChange: function(event) {
     var name = this.state.name;
     var newValue = event.target.value;
@@ -115,24 +118,25 @@ var UrlTracker = React.createClass({
       self.setState({
         fragments: fragments
       }, () => {
-        self.getUrl();
+        self.updateTrackedUrl();
       });
     });
     Pubsub.subscribe('endpoint-change', () => {
-      self.getUrl();
+      self.updateTrackedUrl();
     });
   },
   componentWillUnmount: function() {
-    Pubsub.unsubscribeAll('endpoint-change');
+    Pubsub.unsubscribeAll('dynamic-fragment-update', 'endpoint-change');
   },
-  getUrl: function() {
+  updateTrackedUrl: function() {
     var fragments = this.state.fragments;
     var urlParts = [this.state.baseUrl];
     fragments.forEach((fragment) => {
       urlParts.push(fragment.value);
     });
     var url = urlParts.join('/');
-    console.log('URL => ', url);
+    console.log('Updated URL => ', url);
+    Pubsub.publish('request-url-update', url);
   },
   render: function() {
     var url = this.state.url;
