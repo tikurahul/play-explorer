@@ -3,7 +3,7 @@ var PureRenderMixin = require('react/addons').addons.PureRenderMixin;
 var PropsMixin = require('./mixins');
 
 var BasicParameter = React.createClass({
-  mixins: [PureRenderMixin, PropsMixin],
+  mixins: [PropsMixin],
   propTypes: {
     parameterInfo: React.PropTypes.object
   },
@@ -19,7 +19,7 @@ var BasicParameter = React.createClass({
     var defaultValue = this.state.parameterInfo['default'];
     var inputType = this.state.parameterInfo.inputType;
 
-    var value = !!value ? value : defaultValue;
+    value = !!value ? value : defaultValue;
     var placeholder = name;
 
     // we are going to render a form-group for every parameter
@@ -33,8 +33,10 @@ var BasicParameter = React.createClass({
   },
   handleChange: function(event) {
     var newValue = event.target.value;
+    var parameterInfo = this.state.parameterInfo;
+    parameterInfo.value = newValue;
     this.setState({
-      value: newValue
+      parameterInfo: parameterInfo
     });
   }
 });

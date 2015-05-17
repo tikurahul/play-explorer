@@ -99,20 +99,32 @@ var UrlTracker = React.createClass({
     var self = this;
     Pubsub.subscribe('dynamic-fragment-update', (name, value) => {
       var fragments = self.state.fragments;
-      var urlParts = [self.state.baseUrl];
       fragments.forEach((fragment) => {
         // only dynamic fragments can be updated
         if (fragment.type === 'dynamic' && fragment.identifier === name) {
           fragment.value = value;
         }
-        urlParts.push(fragment.value);
       });
-      var url = urlParts.join('/');
-      console.log('URL : ', url);
       self.setState({
-        url: url
+        fragments: fragments
+      }, () => {
+        self.updateTracker();
       });
     });
+  },
+  updateTracker: function() {
+    var fragments = this.state.fragments;
+    var urlParts = [this.state.baseUrl];
+    fragments.forEach((fragment) => {
+      urlParts.push(fragment.value);
+    });
+    var url = urlParts.join('/');
+    this.setState({
+      url: url
+    });
+  },
+  componentDidMount: function() {
+    this.updateTracker();
   },
   render: function() {
     var url = this.state.url;
