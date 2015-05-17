@@ -45,12 +45,27 @@ var BasicParameter = React.createClass({
 var Parameters = React.createClass({
   mixins: [PureRenderMixin, PropsMixin],
   propTypes: {
+    url: React.PropTypes.string,
+    verb: React.PropTypes.string,
     parameters: React.PropTypes.arrayOf(React.PropTypes.object)
   },
   getInitialState: function() {
     return {
+      url: null,
+      verb: null,
       parameters: []
     };
+  },
+  componentWillMount: function() {
+    var self = this;
+    Pubsub.subscribe('request-url-update', (url) => {
+      self.setState({
+        url: url
+      });
+    });
+  },
+  componentWillUnmount: function() {
+    Pubsub.unsubscribeAll('request-url-update');
   },
   render: function() {
     var parameters = this.state.parameters || [];
@@ -83,7 +98,32 @@ var Parameters = React.createClass({
     );
   },
   handleClick: function() {
-    console.log('Making request');
+    var url = this.state.url;
+    var verb = this.state.verb;
+    var parameters = this.state.parameters;
+    var requestPayload = {};
+    parameters.forEach((parameter) => {
+      requestPayload[parameter.name] = parameter.value;
+    });
+    console.log('Making request', url, verb, requestPayload);
+    Pubsub.publish('start-request', url, verb, requestPayload);
+    var $request = $.ajax({
+      url: url,
+      method: verb,
+      data: requestPayload
+    });
+    $request.always(() => {
+      Pubsub.publish('end-request');
+    });
+    $request.done((data, status, xhr) => {
+      var responseHeaders = xhr.getAllResponseHeaders();
+      console.log('Successful request', url, verb, requestPayload, status, responseHeaders, data, xhr);
+      Pubsub.publish('request-success', url, verb, requestPayload, status, responseHeaders, data);
+    });
+    $request.fail((xhr, textStatus, error) => {
+      console.log('Request failed', url, verb, requestPayload, textStatus, error, xhr);
+      Pubsub.publish('request-failed', url, verb, requestPayload, textStatus, error);
+    });
   }
 })
 

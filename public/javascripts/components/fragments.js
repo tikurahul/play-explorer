@@ -135,7 +135,6 @@ var UrlTracker = React.createClass({
       urlParts.push(fragment.value);
     });
     var url = urlParts.join('/');
-    console.log('Updated URL => ', url);
     Pubsub.publish('request-url-update', url);
   },
   render: function() {
@@ -145,8 +144,7 @@ var UrlTracker = React.createClass({
     };
 
     return (
-      <div className="urlTracker" style={style}>
-      </div>
+      <div className="urlTracker" style={style} />
     );
   }
 });

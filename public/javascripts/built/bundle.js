@@ -20,6 +20,7 @@ var ParametersFactory = React.createFactory(Parameters);
 var endpointHandler = function(eventId) {
   var endpointInfo = cache[eventId] || null;
   if (endpointInfo && Application.baseUrl) {
+    // copy, to prevent mutation of original Application
     var clonedEndpointInfo = JSON.parse(JSON.stringify(endpointInfo));
     // render url tracker
     var urlTracker = UrlTrackerFactory({
@@ -35,10 +36,11 @@ var endpointHandler = function(eventId) {
     React.render(fragments, document.querySelector('#fragments'));
     // render parameters
     var parameters = ParametersFactory({
+      verb: endpointInfo.method,
       parameters: clonedEndpointInfo.parameters
     });
     React.render(parameters, document.querySelector('#parameters'));
-    Pubsub.publish('endpoint-change');
+    Pubsub.publish('endpoint-change', eventId);
   }
 };
 
@@ -202,7 +204,6 @@ var UrlTracker = React.createClass({displayName: "UrlTracker",
       urlParts.push(fragment.value);
     });
     var url = urlParts.join('/');
-    console.log('Updated URL => ', url);
     Pubsub.publish('request-url-update', url);
   },
   render: function() {
@@ -212,8 +213,7 @@ var UrlTracker = React.createClass({displayName: "UrlTracker",
     };
 
     return (
-      React.createElement("div", {className: "urlTracker", style: style}
-      )
+      React.createElement("div", {className: "urlTracker", style: style})
     );
   }
 });
@@ -345,12 +345,27 @@ var BasicParameter = React.createClass({displayName: "BasicParameter",
 var Parameters = React.createClass({displayName: "Parameters",
   mixins: [PureRenderMixin, PropsMixin],
   propTypes: {
+    url: React.PropTypes.string,
+    verb: React.PropTypes.string,
     parameters: React.PropTypes.arrayOf(React.PropTypes.object)
   },
   getInitialState: function() {
     return {
+      url: null,
+      verb: null,
       parameters: []
     };
+  },
+  componentWillMount: function() {
+    var self = this;
+    Pubsub.subscribe('request-url-update', function(url)  {
+      self.setState({
+        url: url
+      });
+    });
+  },
+  componentWillUnmount: function() {
+    Pubsub.unsubscribeAll('request-url-update');
   },
   render: function() {
     var parameters = this.state.parameters || [];
@@ -383,7 +398,32 @@ var Parameters = React.createClass({displayName: "Parameters",
     );
   },
   handleClick: function() {
-    console.log('Making request');
+    var url = this.state.url;
+    var verb = this.state.verb;
+    var parameters = this.state.parameters;
+    var requestPayload = {};
+    parameters.forEach(function(parameter)  {
+      requestPayload[parameter.name] = parameter.value;
+    });
+    console.log('Making request', url, verb, requestPayload);
+    Pubsub.publish('start-request', url, verb, requestPayload);
+    var $request = $.ajax({
+      url: url,
+      method: verb,
+      data: requestPayload
+    });
+    $request.always(function()  {
+      Pubsub.publish('end-request');
+    });
+    $request.done(function(data, status, xhr)  {
+      var responseHeaders = xhr.getAllResponseHeaders();
+      console.log('Successful request', url, verb, requestPayload, status, responseHeaders, data, xhr);
+      Pubsub.publish('request-success', url, verb, requestPayload, status, responseHeaders, data);
+    });
+    $request.fail(function(xhr, textStatus, error)  {
+      console.log('Request failed', url, verb, requestPayload, textStatus, error, xhr);
+      Pubsub.publish('request-failed', url, verb, requestPayload, textStatus, error);
+    });
   }
 })
 

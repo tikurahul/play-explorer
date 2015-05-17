@@ -19,6 +19,7 @@ var ParametersFactory = React.createFactory(Parameters);
 var endpointHandler = function(eventId) {
   var endpointInfo = cache[eventId] || null;
   if (endpointInfo && Application.baseUrl) {
+    // copy, to prevent mutation of original Application
     var clonedEndpointInfo = JSON.parse(JSON.stringify(endpointInfo));
     // render url tracker
     var urlTracker = UrlTrackerFactory({
@@ -34,10 +35,11 @@ var endpointHandler = function(eventId) {
     React.render(fragments, document.querySelector('#fragments'));
     // render parameters
     var parameters = ParametersFactory({
+      verb: endpointInfo.method,
       parameters: clonedEndpointInfo.parameters
     });
     React.render(parameters, document.querySelector('#parameters'));
-    Pubsub.publish('endpoint-change');
+    Pubsub.publish('endpoint-change', eventId);
   }
 };
 
