@@ -8,7 +8,7 @@ import play.router.{DynamicPart, Parsers, StaticPart}
 import scala.util.Try
 
 /** Transforms the play Routes AST -> a representation of a model that we can use internally. */
-object Transforer {
+object Transformer {
 
   val DefaultEndpoint = "http://localhost:9000"
 
@@ -48,9 +48,9 @@ object Transforer {
             parameter <- routeParameters
           } yield {
             val name = parameter.name
-            val default = parameter.default
+            val default = parameter.default.map(removeQuotes)
             val fixed = parameter.fixed
-            BasicParameter(name, fixed.getOrElse(""), required = false, default = default)
+            BasicParameter(name, removeQuotes(fixed.getOrElse("")), required = false, default = default)
           }
         } else {
           Seq.empty[Parameter]
@@ -71,6 +71,10 @@ object Transforer {
     }
   }
 
-  def transform(routesFile: File): Try[Application] = Transforer.<<<(routesFile)
+  def transform(routesFile: File): Try[Application] = Transformer.<<<(routesFile)
 
+  /** This is to work around the quotes surrounding strings in parameter values inside the routes file. */
+  private[Transformer] def removeQuotes(in: String): String = {
+    if (in.startsWith("\"")) in.substring(1, in.lastIndexOf("\"")) else in
+  }
 }

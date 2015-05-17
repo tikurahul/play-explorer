@@ -24,6 +24,6 @@ object MainController extends Controller {
 
   def compileRoutesFile(): Try[Application] = {
     val RoutesFile = new File("app/resources/routes")
-    Transforer <<< RoutesFile
+    Transformer <<< RoutesFile
   }
 }

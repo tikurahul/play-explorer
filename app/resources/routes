@@ -1,9 +1,7 @@
 # Routes File that showcases most of the types of routes
 
-# Dynamic
-GET     /clients/:id        controllers.Api.clientById(id: String, format:String ?= json)
-POST    /clients/:id        controllers.Api.clientById(id: String)
-GET     /files/*name        controllers.Api.download(name: String, format:String ?= json)
-
-# Static
-GET    /assets/clientInfo   controllers.Api.clientInfo()
+GET     /                           controllers.Api.index
+GET     /clients/:id                controllers.Api.clientById(id: String, format:String ?= "json")
+POST    /clients/:id                controllers.Api.clientById(id: String, format:String ?= "json")
+GET     /files/*name                controllers.Api.download(name: String, format:String ?= "json")
+GET     /assets/*file               controllers.Assets.at(path="/public", file)
