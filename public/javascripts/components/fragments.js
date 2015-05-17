@@ -1,6 +1,7 @@
 var React = require('react');
 var PureRenderMixin = require('react/addons').addons.PureRenderMixin;
 var PropsMixin = require('./mixins');
+var Pubsub = require('../modules/pubsub');
 
 var DynamicFragment = React.createClass({
   mixins: [PureRenderMixin, PropsMixin],
@@ -17,10 +18,13 @@ var DynamicFragment = React.createClass({
     }
   },
   handleChange: function(event) {
+    var name = this.state.name;
     var newValue = event.target.value;
     this.setState({
       value: newValue
     });
+    // publish event for UrlTracker
+    Pubsub.publish('dynamic-fragment-update', name, newValue);
   },
   render: function() {
     var value = this.state.value;
@@ -79,6 +83,51 @@ var Fragment = React.createClass({
   }
 });
 
+var UrlTracker = React.createClass({
+  mixins: [PureRenderMixin, PropsMixin],
+  propTypes: {
+    url: React.PropTypes.string
+  },
+  getInitialState: function() {
+    return {
+      baseUrl: null,
+      fragments: [],
+      url: null
+    };
+  },
+  componentWillMount: function() {
+    var self = this;
+    Pubsub.subscribe('dynamic-fragment-update', (name, value) => {
+      var fragments = self.state.fragments;
+      var urlParts = [self.state.baseUrl];
+      fragments.forEach((fragment) => {
+        // only dynamic fragments can be updated
+        if (fragment.type === 'dynamic' && fragment.identifier === name) {
+          fragment.value = value;
+        }
+        urlParts.push(fragment.value);
+      });
+      var url = urlParts.join('/');
+      console.log('URL : ', url);
+      self.setState({
+        url: url
+      });
+    });
+  },
+  render: function() {
+    var url = this.state.url;
+    var style = {
+      display: 'none'
+    };
+
+    return (
+      <div className="urlTracker" style={style}>
+        {url}
+      </div>
+    );
+  }
+});
+
 var Fragments = React.createClass({
   mixins: [PureRenderMixin, PropsMixin],
   getInitialState: function() {
@@ -120,3 +169,4 @@ var Fragments = React.createClass({
 exports.StaticFragment = StaticFragment;
 exports.DynamicFragment = DynamicFragment;
 exports.Fragments = Fragments;
+exports.UrlTracker = UrlTracker;

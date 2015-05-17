@@ -2,6 +2,7 @@ var React = require('react');
 var Utils = require('./modules/utils');
 var Pubsub = require('./modules/pubsub');
 var Fragments = require('./components/fragments').Fragments;
+var UrlTracker = require('./components/fragments').UrlTracker;
 var Parameters = require('./components/parameters').Parameters;
 
 var cache = {};
@@ -11,12 +12,19 @@ var endpoint = null;
 var endpointId = null;
 var i = 0;
 
+var UrlTrackerFactory = React.createFactory(UrlTracker);
 var FragmentsFactory = React.createFactory(Fragments);
 var ParametersFactory = React.createFactory(Parameters);
 
 var endpointHandler = function(eventId) {
   var endpointInfo = cache[eventId] || null;
   if (endpointInfo && Application.baseUrl) {
+    // render url tracker
+    var urlTracker = UrlTrackerFactory({
+      baseUrl: Application.baseUrl,
+      fragments: endpointInfo.fragments
+    });
+    React.render(urlTracker, document.querySelector('#urlTracker'));
     // render fragments
     var fragments = FragmentsFactory({
       baseUrl: Application.baseUrl,

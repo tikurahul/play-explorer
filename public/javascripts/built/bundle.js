@@ -3,6 +3,7 @@ var React = require('react');
 var Utils = require('./modules/utils');
 var Pubsub = require('./modules/pubsub');
 var Fragments = require('./components/fragments').Fragments;
+var UrlTracker = require('./components/fragments').UrlTracker;
 var Parameters = require('./components/parameters').Parameters;
 
 var cache = {};
@@ -12,12 +13,19 @@ var endpoint = null;
 var endpointId = null;
 var i = 0;
 
+var UrlTrackerFactory = React.createFactory(UrlTracker);
 var FragmentsFactory = React.createFactory(Fragments);
 var ParametersFactory = React.createFactory(Parameters);
 
 var endpointHandler = function(eventId) {
   var endpointInfo = cache[eventId] || null;
   if (endpointInfo && Application.baseUrl) {
+    // render url tracker
+    var urlTracker = UrlTrackerFactory({
+      baseUrl: Application.baseUrl,
+      fragments: endpointInfo.fragments
+    });
+    React.render(urlTracker, document.querySelector('#urlTracker'));
     // render fragments
     var fragments = FragmentsFactory({
       baseUrl: Application.baseUrl,
@@ -58,6 +66,7 @@ document.addEventListener('DOMContentLoaded', function() {
 var React = require('react');
 var PureRenderMixin = require('react/addons').addons.PureRenderMixin;
 var PropsMixin = require('./mixins');
+var Pubsub = require('../modules/pubsub');
 
 var DynamicFragment = React.createClass({displayName: "DynamicFragment",
   mixins: [PureRenderMixin, PropsMixin],
@@ -74,10 +83,13 @@ var DynamicFragment = React.createClass({displayName: "DynamicFragment",
     }
   },
   handleChange: function(event) {
+    var name = this.state.name;
     var newValue = event.target.value;
     this.setState({
       value: newValue
     });
+    // publish event for UrlTracker
+    Pubsub.publish('dynamic-fragment-update', name, newValue);
   },
   render: function() {
     var value = this.state.value;
@@ -136,6 +148,51 @@ var Fragment = React.createClass({displayName: "Fragment",
   }
 });
 
+var UrlTracker = React.createClass({displayName: "UrlTracker",
+  mixins: [PureRenderMixin, PropsMixin],
+  propTypes: {
+    url: React.PropTypes.string
+  },
+  getInitialState: function() {
+    return {
+      baseUrl: null,
+      fragments: [],
+      url: null
+    };
+  },
+  componentWillMount: function() {
+    var self = this;
+    Pubsub.subscribe('dynamic-fragment-update', function(name, value)  {
+      var fragments = self.state.fragments;
+      var urlParts = [self.state.baseUrl];
+      fragments.forEach(function(fragment)  {
+        // only dynamic fragments can be updated
+        if (fragment.type === 'dynamic' && fragment.identifier === name) {
+          fragment.value = value;
+        }
+        urlParts.push(fragment.value);
+      });
+      var url = urlParts.join('/');
+      console.log('URL : ', url);
+      self.setState({
+        url: url
+      });
+    });
+  },
+  render: function() {
+    var url = this.state.url;
+    var style = {
+      display: 'none'
+    };
+
+    return (
+      React.createElement("div", {className: "urlTracker", style: style}, 
+        url
+      )
+    );
+  }
+});
+
 var Fragments = React.createClass({displayName: "Fragments",
   mixins: [PureRenderMixin, PropsMixin],
   getInitialState: function() {
@@ -177,9 +234,10 @@ var Fragments = React.createClass({displayName: "Fragments",
 exports.StaticFragment = StaticFragment;
 exports.DynamicFragment = DynamicFragment;
 exports.Fragments = Fragments;
+exports.UrlTracker = UrlTracker;
 
 
-},{"./mixins":3,"react":181,"react/addons":9}],3:[function(require,module,exports){
+},{"../modules/pubsub":5,"./mixins":3,"react":181,"react/addons":9}],3:[function(require,module,exports){
 var PropsMixin = {
   componentWillMount: function() {
     // copy this.props to this.state to keep them in sync
