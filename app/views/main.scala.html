@@ -10,6 +10,8 @@
     var Application = @Html(Json.toJson(application)(applicationWriter).toString());
   </script>
 
+  <link rel="stylesheet" media="screen" href="@routes.Assets.at("node_modules/font-awesome/css/font-awesome.min.css")">
+
   <style type="text/css">
     @** This is to work around React's wrapping of all the components with a 'div' element. Breaks page-flow. *@
     #fragments .panel-body div {
@@ -30,7 +32,10 @@
         <!-- fragments insertion point -->
       </div>
       <div id="parameters">
-          <!-- parameters insertion point -->
+        <!-- parameters insertion point -->
+      </div>
+      <div id="response">
+        <!-- responses insertion point -->
       </div>
     </div>
   </div>

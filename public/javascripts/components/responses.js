@@ -5,12 +5,26 @@ var Pubsub = require('../modules/pubsub');
 
 var Responses = React.createClass({
   mixins: [PureRenderMixin, PropsMixin],
+  propTypes: {
+    pending: React.PropTypes.bool,
+    responses: React.PropTypes.object
+  },
   getInitialState: function() {
     return {
-      response: null
+      pending: false,
+      responses: []
     };
   },
   render: function() {
+    var progressStyle = {};
+    if (!pending) {
+      progressStyle.display = 'none'
+    }
 
+    return (
+      <div>
+        <i className="fa fa-spinner fa-spin" style={progressStyle} />
+      </div>
+    );
   }
 });
