@@ -48,9 +48,12 @@ object Transformer {
             parameter <- routeParameters
           } yield {
             val name = parameter.name
+            // param ?= "json" gives a value of "\"json\""
+            // so we have to remove the quotes surrounding the value
+            // the same happens for both fixed and default values
             val default = parameter.default.map(removeQuotes)
-            val fixed = parameter.fixed
-            BasicParameter(name, removeQuotes(fixed.getOrElse("")), required = false, default = default)
+            val fixed = parameter.fixed.map(removeQuotes)
+            BasicParameter(name, fixed.getOrElse(""), required = false, default = default)
           }
         } else {
           Seq.empty[Parameter]
