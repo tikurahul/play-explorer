@@ -4,6 +4,7 @@ package model
 
 trait InputType {
   def `type`: String
+  override def toString = `type`
 }
 
 object Text extends InputType {
@@ -18,7 +19,7 @@ case class Range(min: Number, max: Number) extends InputType {
   override def `type`: String = "range"
 }
 
-object File extends InputType {
+object FileType extends InputType {
   override def `type`: String = "file"
 }
 
