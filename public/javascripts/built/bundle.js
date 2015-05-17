@@ -188,6 +188,9 @@ var UrlTracker = React.createClass({displayName: "UrlTracker",
       self.getUrl();
     });
   },
+  componentWillUnmount: function() {
+    Pubsub.unsubscribeAll('endpoint-change');
+  },
   getUrl: function() {
     var fragments = this.state.fragments;
     var urlParts = [this.state.baseUrl];
@@ -228,6 +231,9 @@ var Fragments = React.createClass({displayName: "Fragments",
         }
       });
     });
+  },
+  componentWillUnmount: function() {
+    Pubsub.unsubscribeAll('endpoint-change');
   },
   render: function() {
     var baseUrl = this.state.baseUrl;
@@ -311,6 +317,9 @@ var BasicParameter = React.createClass({displayName: "BasicParameter",
         parameterInfo: parameterInfo
       });
     });
+  },
+  componentWillUnmount: function() {
+    Pubsub.unsubscribeAll('endpoint-change');
   },
   render: function() {
     var name = this.state.parameterInfo.name;
@@ -414,6 +423,10 @@ Pubsub.once = function(event, listener) {
 Pubsub.publish = function(event) {
   var args = Array.prototype.slice.call(arguments);
   emitter.emit.apply(emitter, args);
+}
+
+Pubsub.unsubscribeAll = function(event) {
+  emitter.removeAllListeners(event);
 }
 
 module.exports = Pubsub;

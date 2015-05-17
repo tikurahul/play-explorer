@@ -122,6 +122,9 @@ var UrlTracker = React.createClass({
       self.getUrl();
     });
   },
+  componentWillUnmount: function() {
+    Pubsub.unsubscribeAll('endpoint-change');
+  },
   getUrl: function() {
     var fragments = this.state.fragments;
     var urlParts = [this.state.baseUrl];
@@ -162,6 +165,9 @@ var Fragments = React.createClass({
         }
       });
     });
+  },
+  componentWillUnmount: function() {
+    Pubsub.unsubscribeAll('endpoint-change');
   },
   render: function() {
     var baseUrl = this.state.baseUrl;

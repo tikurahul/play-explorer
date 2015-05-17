@@ -23,6 +23,9 @@ var BasicParameter = React.createClass({
       });
     });
   },
+  componentWillUnmount: function() {
+    Pubsub.unsubscribeAll('endpoint-change');
+  },
   render: function() {
     var name = this.state.parameterInfo.name;
     var value = this.state.parameterInfo.value;

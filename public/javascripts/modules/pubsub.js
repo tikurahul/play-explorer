@@ -23,4 +23,8 @@ Pubsub.publish = function(event) {
   emitter.emit.apply(emitter, args);
 }
 
+Pubsub.unsubscribeAll = function(event) {
+  emitter.removeAllListeners(event);
+}
+
 module.exports = Pubsub;
