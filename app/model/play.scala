@@ -15,7 +15,7 @@ object Transforer {
   def <<<(routesFile: File): Try[Application] = {
     Try {
       val baseUrl = Play.maybeApplication.fold(DefaultEndpoint) {
-        app => app.configuration.getString("default.endpoint").getOrElse(DefaultEndpoint)
+        app => app.configuration.getString("default.explorer.endpoint").getOrElse(DefaultEndpoint)
       }
 
       val routes = Parsers.parseRoutesFile(routesFile)
