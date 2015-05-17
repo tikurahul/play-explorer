@@ -27,8 +27,12 @@ object Transforer {
         val pathPattern = route.path
         // path fragments
         val pathFragments: Seq[PathFragment] = pathPattern.parts.flatMap {
-          case static: StaticPart => Some(StaticPathFragment(static.value))
-          case dynamic: DynamicPart => Some(DynamicPathFragment(dynamic.name, dynamic.constraint))
+          case static: StaticPart =>
+            // remove the terminating "/" character
+            val value = if (static.value.endsWith("/")) static.value.substring(0, static.value.lastIndexOf('/')) else static.value
+            Some(StaticPathFragment(value))
+          case dynamic: DynamicPart =>
+            Some(DynamicPathFragment(dynamic.name, dynamic.constraint))
           case _ => None
         }
         // package name
@@ -51,7 +55,17 @@ object Transforer {
         } else {
           Seq.empty[Parameter]
         }
-        BasicEndpoint(packageName, controllerName, methodName, method = verb, fragments = pathFragments, parameters = parameters)
+
+        val dynamicFragmentNames = pathFragments.flatMap {
+          case dynamic: DynamicPathFragment => Some(dynamic.identifier)
+          case _ => None
+        }.toSet
+        // remove parameters for matching fragments
+        val filteredParameters = parameters.filterNot {
+          parameter => dynamicFragmentNames.contains(parameter.name)
+        }
+
+        BasicEndpoint(packageName, controllerName, methodName, method = verb, fragments = pathFragments, parameters = filteredParameters)
       }
       BasicApplication(baseUrl, endpoints)
     }

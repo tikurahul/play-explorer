@@ -21,8 +21,8 @@ object JsonHelpers {
       val jsParameters = for {
         p <- parameters.toSeq
       } yield {
-          Json.toJson(p)(parameterWriter)
-        }
+        Json.toJson(p)(parameterWriter)
+      }
       JsArray(jsParameters)
     }
   }
