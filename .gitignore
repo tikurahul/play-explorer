@@ -39,7 +39,3 @@ project/plugins/project/
 
 ### Node modules
 node_modules/
-
-### Application specfic
-
-public/javascripts/built/
