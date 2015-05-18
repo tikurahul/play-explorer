@@ -59,7 +59,6 @@ var Parameters = React.createClass({
   componentWillMount: function() {
     var self = this;
     var urlUpdateListener = (url) => {
-      console.log('Updating Request URL => ', url);
       self.setState({
         url: url
       });
