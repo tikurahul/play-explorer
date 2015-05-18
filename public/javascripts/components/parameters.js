@@ -117,11 +117,9 @@ var Parameters = React.createClass({
     });
     $request.done((data, status, xhr) => {
       var responseHeaders = xhr.getAllResponseHeaders();
-      console.log('Successful request', url, verb, requestPayload, status, responseHeaders, data, xhr);
       Pubsub.publish('request-success', url, verb, requestPayload, status, responseHeaders, data);
     });
     $request.fail((xhr, textStatus, error) => {
-      console.log('Request failed', url, verb, requestPayload, textStatus, error, xhr);
       Pubsub.publish('request-failed', url, verb, requestPayload, textStatus, error);
     });
   }

@@ -4,6 +4,7 @@ var Pubsub = require('./modules/pubsub');
 var Fragments = require('./components/fragments').Fragments;
 var UrlTracker = require('./components/fragments').UrlTracker;
 var Parameters = require('./components/parameters').Parameters;
+var Responses = require('./components/responses').Responses;
 
 var cache = {};
 
@@ -15,6 +16,7 @@ var i = 0;
 var UrlTrackerFactory = React.createFactory(UrlTracker);
 var FragmentsFactory = React.createFactory(Fragments);
 var ParametersFactory = React.createFactory(Parameters);
+var ResponsesFactory = React.createFactory(Responses);
 
 var endpointHandler = function(eventId) {
   var endpointInfo = cache[eventId] || null;
@@ -39,6 +41,10 @@ var endpointHandler = function(eventId) {
       parameters: clonedEndpointInfo.parameters
     });
     React.render(parameters, document.querySelector('#parameters'));
+    // render responses
+    var responses = ResponsesFactory(null);
+    React.render(responses, document.querySelector('#responses'));
+    // publish event
     Pubsub.publish('endpoint-change', eventId);
   }
 };
