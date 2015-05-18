@@ -44,8 +44,6 @@ var endpointHandler = function(eventId) {
     // render responses
     var responses = ResponsesFactory(null);
     React.render(responses, document.querySelector('#responses'));
-    // publish event
-    Pubsub.publish('endpoint-change', eventId);
   }
 };
 
@@ -66,6 +64,8 @@ document.addEventListener('DOMContentLoaded', function() {
     var $target = $(event.target);
     var eventId = $target.attr('data-endpoint-id');
     Pubsub.publish(eventId, eventId);
+    // publish event
+    Pubsub.publish('endpoint-change', eventId);
   });
 
 });

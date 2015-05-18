@@ -45,8 +45,6 @@ var endpointHandler = function(eventId) {
     // render responses
     var responses = ResponsesFactory(null);
     React.render(responses, document.querySelector('#responses'));
-    // publish event
-    Pubsub.publish('endpoint-change', eventId);
   }
 };
 
@@ -67,6 +65,8 @@ document.addEventListener('DOMContentLoaded', function() {
     var $target = $(event.target);
     var eventId = $target.attr('data-endpoint-id');
     Pubsub.publish(eventId, eventId);
+    // publish event
+    Pubsub.publish('endpoint-change', eventId);
   });
 
 });
@@ -94,14 +94,17 @@ var DynamicFragment = React.createClass({displayName: "DynamicFragment",
   },
   componentWillMount: function() {
     var self = this;
-    Pubsub.subscribe('endpoint-change', function()  {
+    var endpointChangeListener = function()  {
       self.setState({
         value: null
       });
-    });
+    }
+    Pubsub.subscribe('endpoint-change', endpointChangeListener);
+    // keep a reference to the change listener, so we can unsubscribe
+    this._endpointChangeListener = endpointChangeListener;
   },
   componentWillUnmount: function() {
-    Pubsub.unsubscribeAll('endpoint-change');
+    Pubsub.unsubscribe('endpoint-change', this._endpointChangeListener);
   },
   handleChange: function(event) {
     var name = this.state.name;
@@ -182,7 +185,7 @@ var UrlTracker = React.createClass({displayName: "UrlTracker",
   },
   componentWillMount: function() {
     var self = this;
-    Pubsub.subscribe('dynamic-fragment-update', function(name, value)  {
+    var fragmentUpdateListener = function(name, value)  {
       var fragments = self.state.fragments;
       fragments.forEach(function(fragment)  {
         // only dynamic fragments can be updated
@@ -195,13 +198,19 @@ var UrlTracker = React.createClass({displayName: "UrlTracker",
       }, function()  {
         self.updateTrackedUrl();
       });
-    });
-    Pubsub.subscribe('endpoint-change', function()  {
+    }
+    Pubsub.subscribe('dynamic-fragment-update', fragmentUpdateListener);
+    var endpointChangeListener = function()  {
       self.updateTrackedUrl();
-    });
+    }
+    Pubsub.subscribe('endpoint-change', endpointChangeListener);
+    // save references
+    this._fragmentUpdateListener = fragmentUpdateListener;
+    this._endpointChangeListener = endpointChangeListener;
   },
   componentWillUnmount: function() {
-    Pubsub.unsubscribeAll('dynamic-fragment-update', 'endpoint-change');
+    Pubsub.unsubscribe('dynamic-fragment-update', this._fragmentUpdateListener);
+    Pubsub.unsubscribe('endpoint-change', this._endpointChangeListener);
   },
   updateTrackedUrl: function() {
     var fragments = this.state.fragments;
@@ -234,17 +243,19 @@ var Fragments = React.createClass({displayName: "Fragments",
   },
   componentWillMount: function() {
     var self = this;
-    Pubsub.subscribe('endpoint-change', function()  {
+    var endpointChangeListener = function()  {
       var fragments = self.state.fragments;
       fragments.forEach(function(fragment)  {
         if (fragment.type === 'dynamic') {
           fragment.value = null;
         }
       });
-    });
+    }
+    Pubsub.subscribe('endpoint-change', endpointChangeListener);
+    this._endpointChangeListener = endpointChangeListener;
   },
   componentWillUnmount: function() {
-    Pubsub.unsubscribeAll('endpoint-change');
+    Pubsub.unsubscribe('endpoint-change', this._endpointChangeListener);
   },
   render: function() {
     var baseUrl = this.state.baseUrl;
@@ -364,14 +375,18 @@ var Parameters = React.createClass({displayName: "Parameters",
   },
   componentWillMount: function() {
     var self = this;
-    Pubsub.subscribe('request-url-update', function(url)  {
+    var urlUpdateListener = function(url)  {
+      console.log('Updating Request URL => ', url);
       self.setState({
         url: url
       });
-    });
+    }
+    Pubsub.subscribe('request-url-update', urlUpdateListener);
+    // save references to this so we can unsubscribe
+    this._urlUpdateListener = urlUpdateListener;
   },
   componentWillUnmount: function() {
-    Pubsub.unsubscribeAll('request-url-update');
+    Pubsub.unsubscribe('request-url-update', this._urlUpdateListener);
   },
   render: function() {
     var parameters = this.state.parameters || [];
@@ -411,7 +426,6 @@ var Parameters = React.createClass({displayName: "Parameters",
     parameters.forEach(function(parameter)  {
       requestPayload[parameter.name] = parameter.value;
     });
-    console.log('Making request', url, verb, requestPayload);
     Pubsub.publish('start-request', url, verb, requestPayload);
     var $request = $.ajax({
       url: url,
@@ -440,6 +454,7 @@ var React = require('react');
 var PureRenderMixin = require('react/addons').addons.PureRenderMixin;
 var PropsMixin = require('./mixins');
 var Pubsub = require('../modules/pubsub');
+var Utils = require('../modules/utils');
 
 var FailedResponse = React.createClass({displayName: "FailedResponse",
   mixins: [PureRenderMixin, PropsMixin],
@@ -531,8 +546,11 @@ var SuccessfulResponse = React.createClass({displayName: "SuccessfulResponse",
     verb: React.PropTypes.string,
     url: React.PropTypes.string,
     status: React.PropTypes.string,
-    responseHeaders: React.PropTypes.object,
-    data: React.PropTypes.string
+    responseHeaders: React.PropTypes.string,
+    data: React.PropTypes.oneOfType([
+      React.PropTypes.string,
+      React.PropTypes.object
+    ])
   },
   getInitialState: function() {
     return {
@@ -570,7 +588,7 @@ var SuccessfulResponse = React.createClass({displayName: "SuccessfulResponse",
         ), 
         React.createElement("div", {className: "panel-body"}, 
           React.createElement("div", {className: "well well-lg"}, 
-            React.createElement("samp", null, data)
+            React.createElement("samp", null, Utils.asJson(data))
           )
         )
       )
@@ -595,19 +613,21 @@ var Responses = React.createClass({displayName: "Responses",
   componentWillMount: function() {
     var self = this;
     // start-request
-    Pubsub.subscribe('start-request', function()  {
+    var startRequestListener = function()  {
       self.setState({
         requestPending: true
       });
-    });
+    }
+    Pubsub.subscribe('start-request', startRequestListener);
     // end-request
-    Pubsub.subscribe('end-request', function()  {
+    var endRequestListener = function()  {
       self.setState({
         requestPending: false
       });
-    });
+    };
+    Pubsub.subscribe('end-request', endRequestListener);
     // request-success
-    Pubsub.subscribe('request-success', function(url, verb, requestPayload, status, responseHeaders, data)  {
+    var successListener = function(url, verb, requestPayload, status, responseHeaders, data)  {
       var successes = self.state.successes;
       successes.push({
         url: url,
@@ -621,9 +641,10 @@ var Responses = React.createClass({displayName: "Responses",
       self.setState({
         successes: successes
       });
-    });
+    }
+    Pubsub.subscribe('request-success', successListener);
     // request-failed
-    Pubsub.subscribe('request-failed', function(url, verb, requestPayload, textStatus, error)  {
+    var failureListener = function(url, verb, requestPayload, textStatus, error)  {
       var failures = self.state.failures;
       failures.push({
         url: url,
@@ -636,18 +657,31 @@ var Responses = React.createClass({displayName: "Responses",
       self.setState({
         failures: failures
       });
-    });
-    Pubsub.subscribe('endpoint-change', function(eventId)  {
+    }
+    Pubsub.subscribe('request-failed', failureListener);
+    // endpoint change
+    var endpointChangeListener = function(eventId)  {
       // reset
       self.setState({
         requestPending: false,
         successes: [],
         failures: []
       });
-    });
+    }
+    Pubsub.subscribe('endpoint-change', endpointChangeListener);
+    // save references
+    this._startRequestListener = startRequestListener;
+    this._endRequestListener = endRequestListener;
+    this._successListener = successListener;
+    this._failureListener = failureListener;
+    this._endpointChangeListener = endpointChangeListener;
   },
   componentWillUnmount: function() {
-    Pubsub.unsubscribeAll('start-request', 'end-request', 'request-success', 'request-failed', 'endpoint-change');
+    Pubsub.unsubscribe('start-request', this._startRequestListener);
+    Pubsub.unsubscribe('end-request', this._endRequestListener);
+    Pubsub.unsubscribe('request-success', this._successListener);
+    Pubsub.unsubscribe('request-failed', this._failureListener);
+    Pubsub.unsubscribe('endpoint-change', this._endpointChangeListener);
   },
   render: function() {
     var requestPending = this.state.requestPending;
@@ -693,7 +727,7 @@ exports.SuccessfulResponse = SuccessfulResponse;
 exports.Responses = Responses;
 
 
-},{"../modules/pubsub":6,"./mixins":3,"react":182,"react/addons":10}],6:[function(require,module,exports){
+},{"../modules/pubsub":6,"../modules/utils":7,"./mixins":3,"react":182,"react/addons":10}],6:[function(require,module,exports){
 var EventEmitter = require('events').EventEmitter;
 
 var emitter = new EventEmitter();
@@ -741,6 +775,16 @@ Utils.endpointId = function(endpoint) {
   var method = endpoint.method;
 
   return [method, packageName, controller, methodName].join('.');
+}
+
+Utils.asJson = function(input) {
+  if (typeof(input) === 'string') {
+    return input;
+  } else if (typeof(input) === 'object') {
+    return JSON.stringify(input);
+  } else {
+    return input.toString();
+  }
 }
 
 module.exports = Utils;

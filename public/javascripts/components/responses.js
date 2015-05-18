@@ -2,6 +2,7 @@ var React = require('react');
 var PureRenderMixin = require('react/addons').addons.PureRenderMixin;
 var PropsMixin = require('./mixins');
 var Pubsub = require('../modules/pubsub');
+var Utils = require('../modules/utils');
 
 var FailedResponse = React.createClass({
   mixins: [PureRenderMixin, PropsMixin],
@@ -93,8 +94,11 @@ var SuccessfulResponse = React.createClass({
     verb: React.PropTypes.string,
     url: React.PropTypes.string,
     status: React.PropTypes.string,
-    responseHeaders: React.PropTypes.object,
-    data: React.PropTypes.string
+    responseHeaders: React.PropTypes.string,
+    data: React.PropTypes.oneOfType([
+      React.PropTypes.string,
+      React.PropTypes.object
+    ])
   },
   getInitialState: function() {
     return {
@@ -132,7 +136,7 @@ var SuccessfulResponse = React.createClass({
         </div>
         <div className='panel-body'>
           <div className='well well-lg'>
-            <samp>{data}</samp>
+            <samp>{Utils.asJson(data)}</samp>
           </div>
         </div>
       </div>
@@ -157,19 +161,21 @@ var Responses = React.createClass({
   componentWillMount: function() {
     var self = this;
     // start-request
-    Pubsub.subscribe('start-request', () => {
+    var startRequestListener = () => {
       self.setState({
         requestPending: true
       });
-    });
+    }
+    Pubsub.subscribe('start-request', startRequestListener);
     // end-request
-    Pubsub.subscribe('end-request', () => {
+    var endRequestListener = () => {
       self.setState({
         requestPending: false
       });
-    });
+    };
+    Pubsub.subscribe('end-request', endRequestListener);
     // request-success
-    Pubsub.subscribe('request-success', (url, verb, requestPayload, status, responseHeaders, data) => {
+    var successListener = (url, verb, requestPayload, status, responseHeaders, data) => {
       var successes = self.state.successes;
       successes.push({
         url: url,
@@ -183,9 +189,10 @@ var Responses = React.createClass({
       self.setState({
         successes: successes
       });
-    });
+    }
+    Pubsub.subscribe('request-success', successListener);
     // request-failed
-    Pubsub.subscribe('request-failed', (url, verb, requestPayload, textStatus, error) => {
+    var failureListener = (url, verb, requestPayload, textStatus, error) => {
       var failures = self.state.failures;
       failures.push({
         url: url,
@@ -198,18 +205,31 @@ var Responses = React.createClass({
       self.setState({
         failures: failures
       });
-    });
-    Pubsub.subscribe('endpoint-change', (eventId) => {
+    }
+    Pubsub.subscribe('request-failed', failureListener);
+    // endpoint change
+    var endpointChangeListener = (eventId) => {
       // reset
       self.setState({
         requestPending: false,
         successes: [],
         failures: []
       });
-    });
+    }
+    Pubsub.subscribe('endpoint-change', endpointChangeListener);
+    // save references
+    this._startRequestListener = startRequestListener;
+    this._endRequestListener = endRequestListener;
+    this._successListener = successListener;
+    this._failureListener = failureListener;
+    this._endpointChangeListener = endpointChangeListener;
   },
   componentWillUnmount: function() {
-    Pubsub.unsubscribeAll('start-request', 'end-request', 'request-success', 'request-failed', 'endpoint-change');
+    Pubsub.unsubscribe('start-request', this._startRequestListener);
+    Pubsub.unsubscribe('end-request', this._endRequestListener);
+    Pubsub.unsubscribe('request-success', this._successListener);
+    Pubsub.unsubscribe('request-failed', this._failureListener);
+    Pubsub.unsubscribe('endpoint-change', this._endpointChangeListener);
   },
   render: function() {
     var requestPending = this.state.requestPending;

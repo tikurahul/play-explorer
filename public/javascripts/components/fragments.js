@@ -19,14 +19,17 @@ var DynamicFragment = React.createClass({
   },
   componentWillMount: function() {
     var self = this;
-    Pubsub.subscribe('endpoint-change', () => {
+    var endpointChangeListener = () => {
       self.setState({
         value: null
       });
-    });
+    }
+    Pubsub.subscribe('endpoint-change', endpointChangeListener);
+    // keep a reference to the change listener, so we can unsubscribe
+    this._endpointChangeListener = endpointChangeListener;
   },
   componentWillUnmount: function() {
-    Pubsub.unsubscribeAll('endpoint-change');
+    Pubsub.unsubscribe('endpoint-change', this._endpointChangeListener);
   },
   handleChange: function(event) {
     var name = this.state.name;
@@ -107,7 +110,7 @@ var UrlTracker = React.createClass({
   },
   componentWillMount: function() {
     var self = this;
-    Pubsub.subscribe('dynamic-fragment-update', (name, value) => {
+    var fragmentUpdateListener = (name, value) => {
       var fragments = self.state.fragments;
       fragments.forEach((fragment) => {
         // only dynamic fragments can be updated
@@ -120,13 +123,19 @@ var UrlTracker = React.createClass({
       }, () => {
         self.updateTrackedUrl();
       });
-    });
-    Pubsub.subscribe('endpoint-change', () => {
+    }
+    Pubsub.subscribe('dynamic-fragment-update', fragmentUpdateListener);
+    var endpointChangeListener = () => {
       self.updateTrackedUrl();
-    });
+    }
+    Pubsub.subscribe('endpoint-change', endpointChangeListener);
+    // save references
+    this._fragmentUpdateListener = fragmentUpdateListener;
+    this._endpointChangeListener = endpointChangeListener;
   },
   componentWillUnmount: function() {
-    Pubsub.unsubscribeAll('dynamic-fragment-update', 'endpoint-change');
+    Pubsub.unsubscribe('dynamic-fragment-update', this._fragmentUpdateListener);
+    Pubsub.unsubscribe('endpoint-change', this._endpointChangeListener);
   },
   updateTrackedUrl: function() {
     var fragments = this.state.fragments;
@@ -159,17 +168,19 @@ var Fragments = React.createClass({
   },
   componentWillMount: function() {
     var self = this;
-    Pubsub.subscribe('endpoint-change', () => {
+    var endpointChangeListener = () => {
       var fragments = self.state.fragments;
       fragments.forEach((fragment) => {
         if (fragment.type === 'dynamic') {
           fragment.value = null;
         }
       });
-    });
+    }
+    Pubsub.subscribe('endpoint-change', endpointChangeListener);
+    this._endpointChangeListener = endpointChangeListener;
   },
   componentWillUnmount: function() {
-    Pubsub.unsubscribeAll('endpoint-change');
+    Pubsub.unsubscribe('endpoint-change', this._endpointChangeListener);
   },
   render: function() {
     var baseUrl = this.state.baseUrl;

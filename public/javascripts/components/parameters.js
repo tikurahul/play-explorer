@@ -58,14 +58,18 @@ var Parameters = React.createClass({
   },
   componentWillMount: function() {
     var self = this;
-    Pubsub.subscribe('request-url-update', (url) => {
+    var urlUpdateListener = (url) => {
+      console.log('Updating Request URL => ', url);
       self.setState({
         url: url
       });
-    });
+    }
+    Pubsub.subscribe('request-url-update', urlUpdateListener);
+    // save references to this so we can unsubscribe
+    this._urlUpdateListener = urlUpdateListener;
   },
   componentWillUnmount: function() {
-    Pubsub.unsubscribeAll('request-url-update');
+    Pubsub.unsubscribe('request-url-update', this._urlUpdateListener);
   },
   render: function() {
     var parameters = this.state.parameters || [];
@@ -105,7 +109,6 @@ var Parameters = React.createClass({
     parameters.forEach((parameter) => {
       requestPayload[parameter.name] = parameter.value;
     });
-    console.log('Making request', url, verb, requestPayload);
     Pubsub.publish('start-request', url, verb, requestPayload);
     var $request = $.ajax({
       url: url,
