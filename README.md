@@ -96,9 +96,14 @@ Contributions are welcome. All you need to do is fork this project, and send me 
 
 ### What the interface looks like
 
-Here is what the interface looks like currently.
+Here is what the interface looks like currently. Yes, there is a __lot__ of room for improvement. 
 
 ![Explorer](https://raw.githubusercontent.com/tikurahul/play-explorer/master/public/images/interface.png)
+
+### What next ?
+
+* A lot of improvements to the UI.
+* Better packaging for the explorer project. I can perhaps package this as a `Play SBT plugin`. That will make initial setup a __lot__ easier. Stay tuned.
 
 ### License
 
