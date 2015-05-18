@@ -39,3 +39,6 @@ project/plugins/project/
 
 ### Node modules
 node_modules/
+
+.DS_Store
+.DS_Store/
