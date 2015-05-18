@@ -4,8 +4,7 @@
 
 #### What does this project do?
 
-Glad you asked. :smile:
-This project automatically generates a nice `API explorer` for your Play project. This is especially useful writing `RESTful web services`.
+Glad you asked. This project automatically generates a nice `API explorer` for your Play project. This is especially useful writing `RESTful web services`.
 
 #### What about Swagger et.al ?
 
